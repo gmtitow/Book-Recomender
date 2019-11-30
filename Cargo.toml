@@ -1,0 +1,20 @@
+[package]
+name = "magister_add_book"
+version = "0.1.0"
+authors = ["Titow German <titow.german@yandex.ru>"]
+edition = "2018"
+
+[dependencies]
+serde = "1.0"
+serde_derive="1.0"
+serde_json="1.0"
+clap = "2.33.0"
+rust-ini = "0.13"
+
+postgres = "0.15.2"
+regex = "1.2.0"
+
+encoding = "0.2"
+
+logger = { path = "../../../rust/logger" }
+utils = { path = "../../../rust/utils" }
