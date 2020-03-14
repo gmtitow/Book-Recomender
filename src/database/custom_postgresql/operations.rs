@@ -35,20 +35,28 @@ impl CustomPostgres{
 
         let mut first = true;
 
+        let prim_keys = union_to_string(&model.get_primary_keys_names(),", ", None);
+
+        let mut conflict_query = String::new();
+
         for (index,column) in columns.iter().enumerate(){
             match &values[index] {
                 Some(val) => {
                     if !first {
                         query += ", ";
                         query_end += ", ";
+                        conflict_query +=", ";
                     } else {
                         query.push_str(" (");
                         query_end = "VALUES(".to_string();
+                        conflict_query.push_str(&format!(" ON CONFLICT ({}) DO UPDATE SET ",prim_keys.to_string()));
                         first = false;
                     }
 
                     query += &column;
                     query_end += &val;
+
+                    conflict_query.push_str(&format!("{0} = excluded.{0}",&column));
                 },
                 None =>{}
             }
@@ -61,13 +69,12 @@ impl CustomPostgres{
             query_end = "DEFAULT VALUES".to_owned();
         }
 
-        let prim_keys = union_to_string(&model.get_primary_keys_names(),", ", None);
 
-        let all_query = query+ " " + &query_end + " RETURNING "+&prim_keys+";";
+        let all_query = query+ " " + &query_end + &conflict_query +" RETURNING "+&prim_keys+";";
 
         // println!("insert query: {0}",&all_query);
-        let mut logger = Logger::new("insert_log.txt");
-        logger.writeln(&all_query);
+        // let mut logger = Logger::new("insert_log.txt");
+        // logger.writeln(&all_query);
 
         all_query
     }

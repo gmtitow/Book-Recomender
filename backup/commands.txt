@@ -1,0 +1,43 @@
+magister_add_book_words -m select -s 268
+magister_add_book_words -m select -s 3796
+magister_add_book_words -m select -s 3879
+magister_add_book_words -m select -s 7778
+magister_add_book_words -m select -s 711
+magister_add_book_words -m select -s 428
+magister_add_book_words -m select -s 1043
+magister_add_book_words -m select -s 309
+magister_add_book_words -m select -s 2258
+magister_add_book_words -m select -s 5916
+magister_add_book_phrases_2 -m select -s 268
+magister_add_book_phrases_2 -m select -s 3796
+magister_add_book_phrases_2 -m select -s 3879
+magister_add_book_phrases_2 -m select -s 7778
+magister_add_book_phrases_2 -m select -s 711
+magister_add_book_phrases_2 -m select -s 428
+magister_add_book_phrases_2 -m select -s 1043
+magister_add_book_phrases_2 -m select -s 309
+magister_add_book_phrases_2 -m select -s 2258
+magister_add_book_phrases_2 -m select -s 5916
+magister_add_book_phrases_3 -m select -s 268
+magister_add_book_phrases_3 -m select -s 3796
+magister_add_book_phrases_3 -m select -s 3879
+magister_add_book_phrases_3 -m select -s 7778
+magister_add_book_phrases_3 -m select -s 711
+magister_add_book_phrases_3 -m select -s 428
+magister_add_book_phrases_3 -m select -s 1043
+magister_add_book_phrases_3 -m select -s 309
+magister_add_book_phrases_3 -m select -s 2258
+magister_add_book_phrases_3 -m select -s 5916
+magister_add_book_phrases_4 -m select -s 268
+magister_add_book_phrases_4 -m select -s 3796
+magister_add_book_phrases_4 -m select -s 3879
+magister_add_book_phrases_4 -m select -s 7778
+magister_add_book_phrases_4 -m select -s 711
+magister_add_book_phrases_4 -m select -s 428
+magister_add_book_phrases_4 -m select -s 1043
+magister_add_book_phrases_4 -m select -s 309
+magister_add_book_phrases_4 -m select -s 2258
+magister_add_book_phrases_4 -m select -s 5916
+
+
+

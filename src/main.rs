@@ -28,16 +28,6 @@ use magister_add_book::models::authors::Authors;
 use magister_add_book::database::common::{ColEnum,StringCol,IntCol, IntCol64,FloatCol64};
 use magister_add_book::database::common::ColEnum::{SomeValue,Null,Nothing};
 use magister_add_book::database::custom_query::CustomQuery;
-use magister_add_book::models::book_vectors_word_normal::BookVectorsWordNormal;
-use magister_add_book::models::book_vectors_term_7_normal::BookVectorsTerm7Normal;
-use magister_add_book::models::book_vectors_phrase_normal_3::BookVectorsPhraseNormal3;
-use magister_add_book::models::book_vectors_phrase_normal_2::BookVectorsPhraseNormal2;
-use magister_add_book::models::book_vectors_phrase_normal_4::BookVectorsPhraseNormal4;
-use magister_add_book::models::books::Books;
-use magister_add_book::models::files::Files;
-use magister_add_book::models::genres::Genres;
-use magister_add_book::models::genres_books::GenresBooks;
-use magister_add_book::models::stats::Stats;
 use magister_add_book::database::common::ModelInfo;
 
 use std::collections::HashMap;
@@ -50,6 +40,25 @@ use magister_add_book::global::vectors;
 
 use magister_add_book::global::stemmer;
 use magister_add_book::global::stemmer::{PortarsStemmer};
+
+
+use magister_add_book::models::book_vectors_word_normal::BookVectorsWordNormal;
+use magister_add_book::models::book_vectors_term_7_normal::BookVectorsTerm7Normal;
+use magister_add_book::models::book_vectors_phrase_normal_3::BookVectorsPhraseNormal3;
+use magister_add_book::models::book_vectors_phrase_normal_2::BookVectorsPhraseNormal2;
+use magister_add_book::models::book_vectors_phrase_normal_4::BookVectorsPhraseNormal4;
+use magister_add_book::models::test_results::TestResults;
+use magister_add_book::models::test_result_words::TestResultWords;
+use magister_add_book::models::test_result_phrases_2::TestResultPhrases2;
+use magister_add_book::models::test_result_phrases_3::TestResultPhrases3;
+use magister_add_book::models::test_result_phrases_4::TestResultPhrases4;
+use magister_add_book::models::books::Books;
+use magister_add_book::models::files::Files;
+use magister_add_book::models::genres::Genres;
+use magister_add_book::models::genres_books::GenresBooks;
+use magister_add_book::models::stats::Stats;
+use magister_add_book::models::read_books::ReadBooks;
+use magister_add_book::models::vec_sums::VecSums;
 
 use ini::Ini;
 use ini::ini::Properties;
@@ -188,37 +197,211 @@ fn main() {
             let favs = vec![second_par.parse::<i32>().unwrap()];
             //-------------------------------------------------------------------
 
-            select_books(favs, database_manager);
+            select_books(second_par.parse::<i32>().unwrap(), database_manager);
         },
         "test" => {
-            // let words = vec!["противоестественном", "производственный", "дом", "лиса", "завод", "угол", "вонючка"];
 
-            // let words = vec!["одно", "ужасное", "событие", "испортило", "окончание", "этой", "недели", "воскресенье", "пошел", "дождь"];
-            // let stemmer = PortarsStemmer::new();
-            // for word in words {
-            //     // println!("Исходное слово: {0}, урезанное: {1}", word, stemmer::clip(word,&stemmer));
-            //     print!("{0} ", stemmer::clip(word,&stemmer));
+            let postgres_obj = database_manager.into_postgresql();
+
+            
+            let mut query = CustomQuery::new();
+            query = CustomQuery::new();
+            query.set_from(&VecSums::get_source());
+            query.set_condition(&("id = ANY('{1, 2}')"));
+
+            let rows = postgres_obj.select(&query).expect("Не удалось получить предпочтительные книги");
+            let vec_sum:String = rows.get(0).get("vec_sum");
+            let vector_1: HashMap<String, f32> = match serde_json::from_str(
+                &vec_sum
+                            ){
+                                Ok(res) => {res},
+                                Err(err)=> {
+                                    panic!(err);
+                                }
+            };
+
+            let vec_sum:String = rows.get(0).get("vec_sum");
+            let vector_2: HashMap<String, f32> = match serde_json::from_str(
+                &vec_sum
+                            ){
+                                Ok(res) => {res},
+                                Err(err)=> {
+                                    panic!(err);
+                                }
+            };
+
+            let cos = vectors::get_cos_normal(&vector_1, &vector_2);
+
+            println!("cos = {}",cos.to_string());
+
+            // let mut query = CustomQuery::new();
+            // query = CustomQuery::new();
+            // query.set_from(&BookVectorsPhraseNormal2::get_source());
+            // query.set_condition(&("book_id = ANY('{10324, 10322}')"));
+
+            // let rows = postgres_obj.select(&query).expect("Не удалось получить предпочтительные книги");
+
+            // let mut fav_book_vectors:Vec<(i32,BookVectorsPhraseNormal2)> = Vec::new();
+
+            // let ratings = vec![5,5];
+
+            // let mut index = 0;
+            // for row in rows.iter() {
+            //     let direct_vector: String = row.get("vector_direct");
+
+
+            //     let book_id: i32 = row.get("book_id");
+
+            //     let mut rating = ratings[index];
+
+            //     if rating == -1{
+            //         panic!("Did't found rating for book in read_books");
+            //     }
+
+            //     fav_book_vectors.push(
+            //         (
+            //             rating,
+            //             BookVectorsPhraseNormal2{
+            //                 book_id:IntCol::new(book_id),
+            //                 vector_direct: StringCol::new(&direct_vector),
+            //                 length: FloatCol64::new(row.get("length")),
+            //                 ..BookVectorsPhraseNormal2::default()
+            //             }
+            //         )
+            //     );
+            //     index+=1;
             // }
 
-            let text = "—И всё-таки, согласитесь, это даже забавно: вот так встречаться и беседовать друг с другом высоко над землёй.
+            // println!("{}",fav_book_vectors.len());
 
-            Говоривший с улыбкой опустил взгляд. Там, внизу, еле заметные с такой высоты, тянулись тоненькие цепочки огней, сплетаясь в несимметричный узор городских улиц и кварталов.
+            // let mut book_vector_sum : HashMap<String, f32> = HashMap::new();
+            // for fav_book in &fav_book_vectors {
+            //     let (rating, fav_vector) = fav_book;
+            //     match fav_vector.get_vector_direct() {
+            //         SomeValue(val) => {
+            //             book_vector_sum = vectors::concate_with_rating(&book_vector_sum, 
+            //                                                            &serde_json::from_str(val.as_str()).unwrap(), *rating);
+            //         },
+            //         _ => {}
+            //     };
+            // }
+
+            // book_vector_sum = vectors::normalize(&book_vector_sum);
+
+            // let mut test_log = Logger::new("log_test.txt");
+
+            // test_log.writeln(&utils::convert_into_string(&book_vector_sum));
+
+            // println!("sum_vector = {}",utils::convert_into_string(&book_vector_sum));
+
+            // query.set_condition(&("book_id = ANY('{10324, 10323, 10322, 10321}')"));
+            // let rows = postgres_obj.select(&query).expect("Не удалось получить книги");
+
+            // let mut book_vectors:Vec<BookVectorsPhraseNormal2> = Vec::new();
+
+            // for row in rows.iter() {
+            //     let direct_vector: String = row.get("vector_direct");
+            //     book_vectors.push(
+            //         BookVectorsPhraseNormal2{
+            //             book_id:IntCol::new(row.get("book_id")),
+            //             vector_direct: StringCol::new(&direct_vector),
+            //             length: FloatCol64::new(row.get("length")),
+            //             ..BookVectorsPhraseNormal2::default()
+            //         }
+            //     );
+            // }
+
+            // let mut results: HashMap<i32,f32> = HashMap::new();
+            // // Выполнить сравнение
+            // let mut index = 0;
+            // let count = book_vectors.len();
+            // for vector in &book_vectors {
+                
+            //     println!("book_id = {}",&vector.get_book_id().unwrap_ref().to_string());
+
+            //     let book_vector_map: HashMap<String, f32> =  match serde_json::from_str(
+            //             vector.get_vector_direct().unwrap_ref().as_str()) {
+            //                 Ok(res) => {res},
+            //                 Err(err)=> {
+            //                     continue;
+            //                 }
+            //         };
+
+            //     let cos = vectors::get_cos_normal(&book_vector_sum, &book_vector_map);
+            //     // logger.writeln(&format!("book_id = {}, cos = {}",
+            //     //                 vector.get_book_id().unwrap_ref().to_string(),
+            //     //                 cos.to_string()));
+                
+            //     index = index + 1;
+
+            //     println!("{} из {}",index.to_string(), count.to_string());
+
+            //     results.insert(*vector.get_book_id().unwrap_ref(), cos);
+
+            // }
             
-            — Не вижу ничего забавного. Знаете, я бы с большим удовольствием отказался от всяческих выходов в астрал и тому подобной оккультной гимнастики. К сожалению, для меня это самый быстрый способ связи… Хотя и не самый удобный. Сейчас вообще сложное время, вы в курсе — происходит смена зодиака, старые расчёты утрачивают силу, новые ещё не откорректированы, а наши корифеи, как водится, не могут между собой договориться о самых элементарных вещах. Не понимаю, откуда у этих мальчишек такой апломб!
-            
-            — Мальчишек?";
+            // for (id,cos) in results {
+            //     println!("{} - {}",&id.to_string(),&cos.to_string())
+            // }
 
-            let word = "и";
-            let stemmer = stemmer::PortarsStemmer::new();
-            let res = stemmer::clip(word, &stemmer);
-            println!("{}", res);
+        },
+        "test-add-vec" => {
+            let mut books: HashMap<i32,i32> = HashMap::new();
 
+            let pairs:Vec<&str> = second_par.split(',').collect();
 
-            let words = add_book::get_phrases(text, 4);
+            for pair in pairs {
+                let splited_pair:Vec<&str> = pair.split(':').collect();
 
-            for word in words {
-                print!("{0}, ", word);
+                //second_par.parse::<i32>().unwrap()
+
+                let book_id = splited_pair[0].parse::<i32>().unwrap();
+                let rating = splited_pair[1].parse::<i32>().unwrap();
+                books.insert(book_id, rating);
             }
+
+            // books.insert(3969, 10);
+            // books.insert(4093, 10);
+            // books.insert(3879, 5);
+            
+            //4093 : 10, 3969 : 10, 3879 : 10, 4749 : 5, 
+
+            create_sum_vector(books, true, database_manager);
+        },
+        
+        "test-compare-vecs" => {
+            let postgres_obj = database_manager.into_postgresql();
+
+            
+            let mut query = CustomQuery::new();
+            query = CustomQuery::new();
+            query.set_from(&VecSums::get_source());
+            query.set_condition(&("id = ANY('{".to_owned()+&second_par+"}')"));
+
+            let rows = postgres_obj.select(&query).expect("Не удалось получить предпочтительные книги");
+            let vec_sum:String = rows.get(0).get("vec_sum");
+            let vector_1: HashMap<String, f32> = match serde_json::from_str(
+                &vec_sum
+                            ){
+                                Ok(res) => {res},
+                                Err(err)=> {
+                                    panic!(err);
+                                }
+            };
+
+            let vec_sum:String = rows.get(1).get("vec_sum");
+            let vector_2: HashMap<String, f32> = match serde_json::from_str(
+                &vec_sum
+                            ){
+                                Ok(res) => {res},
+                                Err(err)=> {
+                                    panic!(err);
+                                }
+            };
+
+            let cos = vectors::get_cos_normal(&vector_1, &vector_2);
+
+            println!("cos = {}",cos.to_string());
         },
         "gen-for-genres" => {
             gen_vectors_for_genres(database_manager);
@@ -338,15 +521,33 @@ fn add_books_from_file(file_path : &str, database_manager: DatabaseManager){
     };
 }
 
-fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->HashMap<i32,f32> {
+fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f32> {
     let postgres_obj = database_manager.into_postgresql();
 
     let mut fav_books_ids_str = Vec::new();
 
-    let mut book_id = 0;
-    for id in fav_book_ids {
-        fav_books_ids_str.push(id.to_string());
-        book_id = id;
+    let mut query = CustomQuery::new();
+    query.set_from(&ReadBooks::get_source());
+    query.set_condition(&("user_id = ".to_owned() + &user_id.to_string()));
+
+    let rows = postgres_obj.select(&query).expect("Unable to get read books");
+
+    let mut read_books: Vec<ReadBooks> = Vec::new();
+    for row in rows.iter() {
+        // let date_adding: String = row.get("date_adding");
+        read_books.push(
+            ReadBooks{
+                book_id:IntCol::new(row.get("book_id")),
+                user_id: IntCol::new(row.get("user_id")),
+                rating: IntCol::new(row.get("rating")),
+                // date_adding: StringCol::new(&date_adding),
+                ..ReadBooks::default()
+            }
+        );
+    }
+
+    for read_book in &read_books {
+        fav_books_ids_str.push(read_book.get_book_id().unwrap_ref().to_string());
     }
 
     let mut arr_ids = utils::union_to_string(&fav_books_ids_str, ",", None);
@@ -359,55 +560,78 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
     //     ..CustomQuery::default()
     // };
 
-    let mut query = CustomQuery::new();
-    query.set_from(&BookVectorsPhraseNormal4::get_source());
+    query = CustomQuery::new();
+    query.set_from(&BookVectorsPhraseNormal2::get_source());
     query.set_condition(&("book_id = ANY('".to_owned() + &arr_ids + "')"));
 
+    let mut log_select = Logger::open("log_select.txt");
+
+    let mut logger_vectors = Logger::new("log_vectors.txt");
 
     let rows = postgres_obj.select(&query).expect("Не удалось получить предпочтительные книги");
 
-    let mut fav_book_vectors:Vec<BookVectorsPhraseNormal4> = Vec::new();
+    let mut fav_book_vectors:Vec<(i32,BookVectorsPhraseNormal2)> = Vec::new();
 
     for row in rows.iter() {
         let direct_vector: String = row.get("vector_direct");
-        fav_book_vectors.push(
-            BookVectorsPhraseNormal4{
-                book_id:IntCol::new(row.get("book_id")),
-                vector_direct: StringCol::new(&direct_vector),
-                length: FloatCol64::new(row.get("length")),
-                ..BookVectorsPhraseNormal4::default()
+        let book_id: i32 = row.get("book_id");
+
+        let mut rating: i32 = -1;
+        for read_book in &read_books {
+            if *read_book.get_book_id().unwrap_ref() == book_id{
+                rating = *read_book.get_rating().unwrap_ref();
+                break;
             }
+        }
+
+        if rating == -1{
+            panic!("Did't found rating for book in read_books");
+        }
+
+        fav_book_vectors.push(
+            (
+                rating,
+                BookVectorsPhraseNormal2{
+                    book_id:IntCol::new(book_id),
+                    vector_direct: StringCol::new(&direct_vector),
+                    length: FloatCol64::new(row.get("length")),
+                    ..BookVectorsPhraseNormal2::default()
+                }
+            )
         );
     }
 
     let mut path = String::new();
 
-    path.push_str("test/");
-    path.push_str(&book_id.to_string());
-    path.push_str("_phrase_4.txt");
+    path.push_str("test_3/");
+    path.push_str("users_");
+    path.push_str(&user_id.to_string());
+    path.push_str(".txt");
     let mut logger = Logger::new(&path);
+
+    let mut logger_ids = Logger::open("log_ids.txt");
 
     logger.writeln("Получил предпочтительные:");
 
     for fav_book in &fav_book_vectors {
-        logger.writeln(&(fav_book.get_book_id().unwrap_ref().to_string()));
+        let (rating, fav_vector) = fav_book;
+        logger.writeln(&(fav_vector.get_book_id().unwrap_ref().to_string()));
     }
 
     let mut book_vector_sum : HashMap<String, f32> = HashMap::new();
 
     for fav_book in &fav_book_vectors {
-        match fav_book.get_vector_direct() {
+        let (rating, fav_vector) = fav_book;
+        match fav_vector.get_vector_direct() {
             SomeValue(val) => {
-                if book_vector_sum.len() == 0 {
-                    book_vector_sum = serde_json::from_str(val.as_str()).unwrap();
-                } else {
-                    book_vector_sum = vectors::concate_and_normalize(&book_vector_sum, 
-                                                                     &serde_json::from_str(val.as_str()).unwrap());
-                }
+                    book_vector_sum = vectors::concate_with_rating(&book_vector_sum, 
+                                                                     &serde_json::from_str(val.as_str()).unwrap(), *rating);
             },
             _=>{}
         };
     }
+
+    book_vector_sum = vectors::normalize(&book_vector_sum);
     
     // utils::output_hash_map(&book_vector_sum, &mut logger);
 
@@ -416,7 +640,7 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
 
     let mut results: HashMap<i32,f32> = HashMap::new();
 
-    let max = 10;
+    let max = 21;
 
     println!("{}", max.to_string());
 
@@ -425,6 +649,7 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
 
     query.set_condition("");
     query.set_limit(&page_size.to_string());
+    query.set_order("book_id asc");
 
     let start = Instant::now();
 
@@ -435,7 +660,7 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
         println!("Начал запрос");
         let rows = postgres_obj.select(&query).expect("Не удалось получить все книги");
         println!("Выполнил запрос");
-        let mut book_vectors:Vec<BookVectorsPhraseNormal4> = Vec::new();
+        let mut book_vectors:Vec<BookVectorsPhraseNormal2> = Vec::new();
 
         if rows.len() < page_size {
             end = true;
@@ -444,21 +669,27 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
         for row in rows.iter() {
             let direct_vector: String = row.get("vector_direct");
             book_vectors.push(
-                BookVectorsPhraseNormal4{
+                BookVectorsPhraseNormal2{
                     book_id:IntCol::new(row.get("book_id")),
                     vector_direct: StringCol::new(&direct_vector),
                     length: FloatCol64::new(row.get("length")),
-                    ..BookVectorsPhraseNormal4::default()
+                    ..BookVectorsPhraseNormal2::default()
                 }
             );
         }
 
         // Выполнить сравнение
-
         let mut index = 0;
         let count = book_vectors.len();
         for vector in &book_vectors {
-            let book_vector_map: HashMap<String, f32> = serde_json::from_str(vector.get_vector_direct().unwrap_ref().as_str()).unwrap();
+            let book_vector_map: HashMap<String, f32> =  match serde_json::from_str(
+                    vector.get_vector_direct().unwrap_ref().as_str()) {
+                        Ok(res) => {res},
+                        Err(err)=> {
+                            log_select.writeln(&format!("Не удалось распарсить книгу с id = {}",vector.get_book_id().unwrap_ref().to_string()));
+                            continue;
+                        }
+                };
 
             let cos = vectors::get_cos_normal(&book_vector_sum, &book_vector_map);
             // logger.writeln(&format!("book_id = {}, cos = {}",
@@ -485,6 +716,16 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
     let mut index = 0;
     let count = results.len();
     let mut used_books = vec![];
+
+    let mut path = String::new();
+
+    path.push_str("test_result_phrases_2.txt");
+    let mut logger_result = Logger::open(&path);
+    logger_result.write(&(user_id.to_string()+"\t"));
+    let mut genres_book = String::new();
+
+    let mut stats_genres: HashMap<String,i32> = HashMap::new();
+
     while index < count {
         let mut cur_max: f32 = -1.0;
         let mut cur_max_book_id = 0;
@@ -498,7 +739,7 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
         used_books.push(cur_max_book_id);
 
         let mut query = CustomQuery::new();
-        query.set_columns("b.name, a.author_id as author_id, a.full_name, 
+        query.set_columns("b.name, a.author_id as author_id, b.reading_id, a.full_name, 
             array((Select genre_name from genres g inner join genres_books g_b using(genre_id) 
                     where g_b.book_id = b.book_id)) as genres");
             query.set_from("books b inner join authors a using(author_id)");
@@ -512,21 +753,169 @@ fn select_books(fav_book_ids: Vec<i32>, database_manager: DatabaseManager)->Hash
         let mut genres:Vec<String> = Vec::new();
         for row in rows.iter() {
             book_name = row.get("name");
-                author_name = row.get("full_name");
-                author_id = row.get("author_id");
-                genres = row.get("genres");
-            }
+            author_name = row.get("full_name");
+            author_id = row.get("author_id");
+            genres = row.get("genres");
+        }
 
-            let genres_str = union_to_string(&genres, ",", None);
+        let genres_str = union_to_string(&genres, ",", None);
 
+        if index == 0 {
+            logger_result.write(&(book_name.to_string()+"\t"));
+            logger_result.write(&(genres_str.to_string()+"\t"));
+            logger_result.write(&(author_name.to_string()+"\t"));
+            genres_book = genres_str.to_string();   
+
+        } else {
             logger.writeln(&format!("book_id = {}, cos = {}, название = \'{}\', автор = {}, id = {}, жанры = {}",
                 cur_max_book_id.to_string(),cur_max.to_string(),book_name,author_name,author_id.to_string(),genres_str));
-        
+
+            match stats_genres.get_mut(&genres_str) {
+                Some(val) => {
+                    *val+=1;
+                },
+                None=>{
+                    stats_genres.insert(genres_str, 1);
+                }
+            }
+            
+        }
+        // logger_ids.write(&reading_id.to_string());
+        // logger_ids.write(", ");
+
         index+=1;
     }
-    
+
+    for (genre,count) in &stats_genres {
+        logger_result.write(&(genre.to_string()+" : "+&count.to_string()+"; "));
+    }
+    logger_result.writeln("");
+
+    let mut query = CustomQuery::new();
+    query.set_from("test_result_words");
+    query.set_condition(&("genre = \'".to_string()+&genres_book+"\'"));
+    query.set_limit("1");
+
+    let rows = postgres_obj.select(&query).expect("Unable get test_results");
+
+    if rows.is_empty() {
+        let results = TestResultPhrases2 {
+            count:IntCol::new(1),
+            stats_genre: StringCol::new(&serde_json::to_string(&stats_genres).expect("Не удалось сериализовать")),
+            genre: StringCol::new(&genres_book),
+            ..TestResultPhrases2::default()
+        };
+
+        postgres_obj.insert(&results).expect("Не удалось добавить test_result");
+    } else {
+        for row in rows.iter() {
+            let mut results = TestResultWords {
+                id: IntCol::new(row.get("id")),
+                count:IntCol::new(row.get("count")),
+                stats_genre: StringCol::new(&row.get::<&str,String>("stats_genre")),
+                genre: StringCol::new(&row.get::<&str,String>("genre")),
+            };
+
+            results.set_count(ColEnum::SomeValue(results.get_count().unwrap_ref()+1));
+
+            let old_stats_genres = results.get_stats_genre().unwrap_ref();
+
+            let old_map: HashMap<String,i32> = serde_json::from_str(&old_stats_genres.to_string()).expect("unable десериализовать");
+
+            for (genre,count) in old_map {
+                match stats_genres.get_mut(&genre) {
+                    Some(val) => {
+                        *val+=count;
+                    },
+                    None=>{
+                        stats_genres.insert(genre, count);
+                    }
+                }
+            }
+
+            results.set_stats_genre(SomeValue(serde_json::to_string(&stats_genres).expect("Не удалось сериализовать")));
+            postgres_obj.update(&results).expect("Не удалось добавить test_result");
+        }
+    }
 
     results
+}
+
+fn create_sum_vector(books: HashMap<i32, i32>, save : bool, database_manager : DatabaseManager) -> HashMap<String,f32> {
+    let postgres_obj = database_manager.into_postgresql();
+
+            let mut query = CustomQuery::new();
+            query = CustomQuery::new();
+            query.set_from(&BookVectorsPhraseNormal2::get_source());
+
+    let mut book_ids = vec![];
+
+    let mut vec_string = String::new();
+
+    for (book_id,rating) in &books {
+        book_ids.push(book_id.to_string());
+        vec_string.push_str(&(book_id.to_string()+" : " + &rating.to_string() + ", "));
+    }
+
+    let mut arr_ids = utils::union_to_string(&book_ids, ",", None);
+
+    arr_ids = "{".to_owned() + &arr_ids + "}";
+
+            query.set_condition(&("book_id = ANY('".to_owned() + &arr_ids + "')"));
+            let rows = postgres_obj.select(&query).expect("Не удалось получить книги");
+
+            let mut fav_book_vectors:Vec<(i32,BookVectorsPhraseNormal2)> = Vec::new();
+
+            for row in rows.iter() {
+                let direct_vector: String = row.get("vector_direct");
+                let book_id:i32 = row.get("book_id");
+                let mut rating:i32 = 0;
+
+                match books.get(&book_id) {
+                    Some(_rating) => {
+                        rating = *_rating;
+                    },
+                    None => { panic!("Книга не найдена!!!"); }
+                }
+
+                fav_book_vectors.push(
+                    (
+                        rating,
+                        BookVectorsPhraseNormal2{
+                            book_id:IntCol::new(book_id),
+                            vector_direct: StringCol::new(&direct_vector),
+                            length: FloatCol64::new(row.get("length")),
+                            ..BookVectorsPhraseNormal2::default()
+                        }
+                    )
+                );
+            }
+
+            let mut book_vector_sum : HashMap<String, f32> = HashMap::new();
+            for fav_book in &fav_book_vectors {
+                let (rating, fav_vector) = fav_book;
+                match fav_vector.get_vector_direct() {
+                    SomeValue(val) => {
+                        book_vector_sum = vectors::concate_with_rating(&book_vector_sum, 
+                                                                       &serde_json::from_str(val.as_str()).unwrap(), *rating);
+                    },
+                    _ => {}
+                };
+            }
+
+            book_vector_sum = vectors::normalize(&book_vector_sum);
+
+            if save {
+                let vec_sum = VecSums {
+                    vec: StringCol::new(&vec_string),
+                    vec_sum: StringCol::new(&utils::convert_to_json_string(&book_vector_sum)),
+                    ..VecSums::default()
+                };
+
+                postgres_obj.insert(&vec_sum).expect("Any problem with vec sum insert");
+            }
+
+            book_vector_sum
 }
 
 fn replace_min(vec: &mut HashMap<i32, f32>, value : f32, key: i32) {
@@ -560,7 +949,7 @@ fn parse_books_from_db(last_book_id: i32, max: Option<i32>, database_manager: Da
     query.set_columns("f.path_to, b.book_id");
     query.set_from("books b inner join books_files b_f USING (book_id)
                     inner join files f USING (file_id)");
-    query.set_condition(&format!("f.extension = \'txt\' and b.book_id > {}",
+    query.set_condition(&format!("not exists (select 1 from book_vectors_model b_v where b_v.book_id = b.book_id) and f.extension = \'txt\' and b.book_id > {}",
                                     last_book_id.to_string()));
     query.set_order("book_id asc");
     
@@ -587,7 +976,7 @@ fn parse_books_from_db(last_book_id: i32, max: Option<i32>, database_manager: Da
             None => {continue;}
         };
 
-        // add_book::save_words_into_database(book_id,&data,&postgres_obj);
+        add_book::save_words_into_database(book_id,&data,&postgres_obj);
 
         // add_book::save_terms_into_database(book_id,&data,2,&postgres_obj);
         // add_book::save_terms_into_database(book_id,&data,3,&postgres_obj);
@@ -648,7 +1037,7 @@ fn gen_vectors_for_genres(database_manager: DatabaseManager) {
 
         println!("Жанр: {}, с id = {}",genre.get_genre_name().unwrap_ref().to_string(), genre.get_genre_id().unwrap_ref().to_string());
         let mut page = 0;
-        let mut page_size = 10;
+        let page_size = 10;
 
         let mut end = false;
 
@@ -786,7 +1175,7 @@ fn gen_vectors_for_stats(database_manager: DatabaseManager) {
 
         let json = convert_to_json_string(&middle_vector);
 
-        let mut stat = Stats {
+        let stat = Stats {
             data: StringCol::new(&json),
             id : IntCol::new(1),
             description: StringCol::new("worst"),
@@ -817,7 +1206,7 @@ fn gen_vectors_for_stats(database_manager: DatabaseManager) {
 
         let json = convert_to_json_string(&middle_vector);
 
-        let mut stat = Stats {
+        let stat = Stats {
             data: StringCol::new(&json),
             id : IntCol::new(2),
             description: StringCol::new("best"),
@@ -883,7 +1272,7 @@ fn fill_book_stats(database_manager: DatabaseManager) {
 
     let mut books_count = 0;
     let mut page = 0;
-    let mut page_size = 10;
+    let page_size = 10;
 
     query.set_limit(&page_size.to_string());
 

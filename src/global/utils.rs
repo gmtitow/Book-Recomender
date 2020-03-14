@@ -107,6 +107,20 @@ pub fn convert_to_json_string<T: serde::ser::Serialize>(map: &HashMap<String, T>
     serde_json::to_string(map).expect("Не удалось сериализовать")
 }
 
+pub fn convert_into_string(map: &HashMap<String, f32>)->String{
+    let mut result = String::from("{");
+
+    for (key,value) in map.into_iter() {
+        result.push_str(&key);
+        result.push_str(" : ");
+        result.push_str(&value.to_string());
+        result.push_str(", ");
+    }
+    result.push_str("}");
+
+    result
+}
+
 pub fn print_in_file(message: &str, file : &mut File){
     file.write(message.as_bytes()).unwrap();
 }

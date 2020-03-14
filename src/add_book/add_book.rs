@@ -23,7 +23,7 @@ use crate::models::book_vectors_phrase_normal_4::BookVectorsPhraseNormal4;
 use crate::global::utils;
 use crate::global::utils::{
     convert_to_json, convert_to_json_string, count_terms, count_terms_string, get_terms, get_words,
-    print_in_file,divide_word,handle_word
+    print_in_file,divide_word,handle_word,union_to_string
 };
 
 use std::collections::HashMap;
@@ -185,7 +185,8 @@ pub fn get_clipped_words_with_punctuation(text: &str)->Vec<String>{
 
     let mut clipped_words:Vec<String> = Vec::new();
 
-    let punctuation = vec![",",".",":",";","?","!","—","&","#","[","]","(",")","{","}"];
+    let punctuation = vec!["!","\"","#","$","%","&","\'","(", ")", "*", "+", ",", "-", ".", "/", 
+    ":",";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`","{", "|", "}", "~","—"];
 
     let stemmer = PortarsStemmer::new();
     for word in &words {
@@ -219,37 +220,36 @@ pub fn get_phrases(text: &str, phrases_len: usize)->Vec<String>{
 
     let mut phrases:Vec<String> = Vec::new();
 
+    let mut last_words:Vec<String> = Vec::new();
+
     let mut count: usize = 0;
     let mut last_phrase = String::new();
-    let mut found;
+    let punctuation = vec!["!","\"","#","$","%","&","\'","(", ")", "*", "+", ",", "-", ".", "/", 
+    ":",";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`","{", "|", "}", "~","—"];
     for word in words {
-        found = false;
-            if word.ends_with(|c : char| c.is_ascii_punctuation()) {
+            // if word.ends_with(|c : char| c.is_ascii_punctuation()) {
+            if punctuation.contains(&word.chars().last().unwrap().to_string().as_str()) {
                 if word.chars().any(|c : char| c.is_alphabetic()) {
-                    if count > 0 {
-                        last_phrase.push(' ');
+                    // print!("{} ", word.chars().last().unwrap());
+                    if last_words.len() == phrases_len {
+                        last_words.remove(0);
                     }
-                    last_phrase.push_str(&handle_word(&word));
+                    last_words.push(handle_word(&word));
+                    last_phrase = union_to_string(&last_words," ",None);
                     phrases.push(last_phrase);
                 }
 
-                count = 0;
-                last_phrase = String::new();
-                found = true;
-            }
-
-        if !found {
-            if count > 0 {
-                last_phrase.push(' ');
-            }
-            last_phrase.push_str(&handle_word(&word));
-            count+=1;
-
-            if count == phrases_len {
-                phrases.push(last_phrase);
-                count = 0;
-                last_phrase = String::new();
-            }
+                last_words.clear();
+            } else {
+            
+                if last_words.len() < phrases_len {
+                    last_words.push(handle_word(&word));
+                } else {
+                    last_words.remove(0);
+                    last_words.push(handle_word(&word));
+                    last_phrase = union_to_string(&last_words," ",None);
+                    phrases.push(last_phrase);
+                }
         }
     }
 
@@ -326,7 +326,7 @@ pub fn save_words_into_database(
     book_vector.set_vector_direct(SomeValue(json));
 
     postgres_obj
-        .update(&book_vector)
+        .insert(&book_vector)
         .expect("Unable insert book vector");
 
     book_vector
@@ -365,7 +365,7 @@ pub fn save_phrases_into_database(
             book_vector.set_vector_direct(SomeValue(json));
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         3 => {
@@ -393,7 +393,7 @@ pub fn save_phrases_into_database(
             book_vector.set_vector_direct(SomeValue(json));
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         4 => {
@@ -421,7 +421,7 @@ pub fn save_phrases_into_database(
             book_vector.set_vector_direct(SomeValue(json));
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         _ => panic!("Такое количество не поддерживается"),
@@ -443,7 +443,7 @@ pub fn save_terms_into_database(
             };
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         3 => {
@@ -453,7 +453,7 @@ pub fn save_terms_into_database(
             };
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         4 => {
@@ -463,7 +463,7 @@ pub fn save_terms_into_database(
             };
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         5 => {
@@ -473,7 +473,7 @@ pub fn save_terms_into_database(
             };
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         6 => {
@@ -484,7 +484,7 @@ pub fn save_terms_into_database(
 
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         },
         7 => {
@@ -494,7 +494,7 @@ pub fn save_terms_into_database(
             };
 
             postgres_obj
-                .update(&book_vector)
+                .insert(&book_vector)
                 .expect("Unable insert book vector");
         }
         _ => panic!("Такое количество не поддерживается"),
