@@ -59,6 +59,9 @@ use magister_add_book::models::genres_books::GenresBooks;
 use magister_add_book::models::stats::Stats;
 use magister_add_book::models::read_books::ReadBooks;
 use magister_add_book::models::vec_sums::VecSums;
+use magister_add_book::models::recommended_books::RecommendedBooks;
+use magister_add_book::models::book_lists_books::BookListsBooks;
+use magister_add_book::models::book_lists::BookLists;
 
 use ini::Ini;
 use ini::ini::Properties;
@@ -427,7 +430,7 @@ fn add_books_from_file(file_path : &str, database_manager: DatabaseManager){
 
     let path = Path::new(file_path);
 
-    let books_data = fs::read_to_string(path).expect("Не удалось открыть файл с книгами");;
+    let books_data = fs::read_to_string(path).expect("Не удалось открыть файл с книгами");
 
     for line in books_data.lines() {
         if line.len() == 0 {
@@ -521,14 +524,14 @@ fn add_books_from_file(file_path : &str, database_manager: DatabaseManager){
     };
 }
 
-fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f32> {
+fn select_books(list_id: i32, database_manager: DatabaseManager)->HashMap<i32,f32> {
     let postgres_obj = database_manager.into_postgresql();
 
     let mut fav_books_ids_str = Vec::new();
 
     let mut query = CustomQuery::new();
-    query.set_from(&ReadBooks::get_source());
-    query.set_condition(&("user_id = ".to_owned() + &user_id.to_string()));
+    query.set_from(&BookListsBooks::get_source());
+    query.set_condition(&("list_id = ".to_owned() + &list_id.to_string()));
 
     let rows = postgres_obj.select(&query).expect("Unable to get read books");
 
@@ -538,7 +541,6 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
         read_books.push(
             ReadBooks{
                 book_id:IntCol::new(row.get("book_id")),
-                user_id: IntCol::new(row.get("user_id")),
                 rating: IntCol::new(row.get("rating")),
                 // date_adding: StringCol::new(&date_adding),
                 ..ReadBooks::default()
@@ -603,9 +605,9 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
 
     let mut path = String::new();
 
-    path.push_str("test_3/");
-    path.push_str("users_");
-    path.push_str(&user_id.to_string());
+    // path.push_str("test_3/");
+    path.push_str("lists_");
+    path.push_str(&list_id.to_string());
     path.push_str(".txt");
     let mut logger = Logger::new(&path);
 
@@ -640,14 +642,23 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
 
     let mut results: HashMap<i32,f32> = HashMap::new();
 
-    let max = 21;
+    let max = 100;
 
     println!("{}", max.to_string());
 
     let mut page: usize = 0;
     let page_size: usize = 100;
 
-    query.set_condition("");
+    // query.set_from(&format!("{0} as vec inner join {1} as b_l_b where (book_id)",
+    //             BookVectorsPhraseNormal2::get_source(),
+    //             BookListsBooks::get_source()));
+
+    query.set_condition(&format!("not exists (select * from {0} 
+                where list_id = {1} and {0}.book_id = {2}.book_id)",
+                BookListsBooks::get_source(),
+                list_id,
+                BookVectorsPhraseNormal2::get_source()));
+
     query.set_limit(&page_size.to_string());
     query.set_order("book_id asc");
 
@@ -665,6 +676,10 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
         if rows.len() < page_size {
             end = true;
         }
+
+        //-------------------------------------
+        // end = true;
+        //-------------------------------------
 
         for row in rows.iter() {
             let direct_vector: String = row.get("vector_direct");
@@ -721,7 +736,7 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
 
     path.push_str("test_result_phrases_2.txt");
     let mut logger_result = Logger::open(&path);
-    logger_result.write(&(user_id.to_string()+"\t"));
+    logger_result.write(&(list_id.to_string()+"\t"));
     let mut genres_book = String::new();
 
     let mut stats_genres: HashMap<String,i32> = HashMap::new();
@@ -791,6 +806,7 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
     }
     logger_result.writeln("");
 
+    //Запись результатов теста в базу
     let mut query = CustomQuery::new();
     query.set_from("test_result_words");
     query.set_condition(&("genre = \'".to_string()+&genres_book+"\'"));
@@ -836,6 +852,23 @@ fn select_books(user_id: i32, database_manager: DatabaseManager)->HashMap<i32,f3
             results.set_stats_genre(SomeValue(serde_json::to_string(&stats_genres).expect("Не удалось сериализовать")));
             postgres_obj.update(&results).expect("Не удалось добавить test_result");
         }
+    }
+
+    //Запись результатов в базу
+    let del_sql = "DELETE FROM recommended_books where list_id = ".to_owned()+&list_id.to_string();
+
+    postgres_obj.execute(&del_sql).expect("Не удалось очистить список рекомендаций");
+
+    let mut recommendation: RecommendedBooks = RecommendedBooks {
+        list_id: IntCol::new(list_id),
+        ..RecommendedBooks::default()
+    };
+
+    for (book_id, cos) in &results {
+        recommendation.set_book_id(SomeValue(*book_id));
+        recommendation.set_accordance(SomeValue(*cos as f64));
+
+        postgres_obj.insert(&recommendation).expect("Не удалось сохранить рекомендацию");
     }
 
     results
