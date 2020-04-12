@@ -1,0 +1,2 @@
+E:\YandexDisk\Магистратура\rust_projects\magister_add_book\test\Шедевр.txt ### Шедевр ### Герман Титов
+E:\YandexDisk\Магистратура\rust_projects\magister_add_book\test\Шедевр 2.txt ### Шедевр 2 ### Герман Титов

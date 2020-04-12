@@ -1,12 +1,2 @@
 /target
 **/*.rs.bk
-/src/models_gener/*
-/test
-/test_2
-/test_3
-/test_books
-log_ids.txt
-log_select.txt
-log_test.txt
-log_vectors.txt
-log_ascii_reading

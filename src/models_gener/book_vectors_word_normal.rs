@@ -4,7 +4,6 @@ use crate::database::common::{ModelInfo,IntCol,IntCol64,FloatCol64,StringCol,Col
 pub struct BookVectorsWordNormal {
     pub book_id: IntCol,
     pub vector_direct: StringCol,
-    pub vector_hashed: StringCol,
     pub vector_invers: StringCol,
     pub length: FloatCol64
 }
@@ -25,15 +24,6 @@ impl BookVectorsWordNormal {
 
     pub fn get_vector_direct(&self)->&ColEnum<String>{
         &self.vector_direct.value
-    }
-
-    pub fn set_vector_hashed(&mut self, vector_hashed : ColEnum<String>)->&Self{
-        self.vector_hashed = StringCol::new_col(vector_hashed);
-        self
-    }
-
-    pub fn get_vector_hashed(&self)->&ColEnum<String>{
-        &self.vector_hashed.value
     }
 
     pub fn set_vector_invers(&mut self, vector_invers : ColEnum<String>)->&Self{
@@ -74,14 +64,13 @@ impl ModelInfo for BookVectorsWordNormal {
     }
 
     fn get_columns(&self)-> Vec<&str>{
-        vec!["book_id","vector_direct","vector_hashed","vector_invers","length"]
+        vec!["book_id","vector_direct","vector_invers","length"]
     }
 
     fn get_values(&self) -> Vec<Option<String>>{
         vec![
             self.book_id.convert_to_sql(),
             self.vector_direct.convert_to_sql(),
-            self.vector_hashed.convert_to_sql(),
             self.vector_invers.convert_to_sql(),
             self.length.convert_to_sql()
         ]

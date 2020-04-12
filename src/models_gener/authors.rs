@@ -7,9 +7,7 @@ pub struct Authors {
     pub last_name: StringCol,
     pub full_name: StringCol,
     pub birthday: StringCol,
-    pub date_adding: StringCol,
-    pub reading_id: IntCol,
-    pub vector: StringCol
+    pub date_adding: StringCol
 }
 impl Authors {
     pub fn set_author_id(&mut self, author_id : ColEnum<i32>)->&Self{
@@ -65,24 +63,6 @@ impl Authors {
     pub fn get_date_adding(&self)->&ColEnum<String>{
         &self.date_adding.value
     }
-
-    pub fn set_reading_id(&mut self, reading_id : ColEnum<i32>)->&Self{
-        self.reading_id = IntCol::new_col(reading_id);
-        self
-    }
-
-    pub fn get_reading_id(&self)->&ColEnum<i32>{
-        &self.reading_id.value
-    }
-
-    pub fn set_vector(&mut self, vector : ColEnum<String>)->&Self{
-        self.vector = StringCol::new_col(vector);
-        self
-    }
-
-    pub fn get_vector(&self)->&ColEnum<String>{
-        &self.vector.value
-    }
 }
 impl ModelInfo for Authors {
     fn get_table_name(&self) -> &str{
@@ -104,7 +84,7 @@ impl ModelInfo for Authors {
     }
 
     fn get_columns(&self)-> Vec<&str>{
-        vec!["author_id","first_name","last_name","full_name","birthday","date_adding","reading_id","vector"]
+        vec!["author_id","first_name","last_name","full_name","birthday","date_adding"]
     }
 
     fn get_values(&self) -> Vec<Option<String>>{
@@ -114,9 +94,7 @@ impl ModelInfo for Authors {
             self.last_name.convert_to_sql(),
             self.full_name.convert_to_sql(),
             self.birthday.convert_to_sql(),
-            self.date_adding.convert_to_sql(),
-            self.reading_id.convert_to_sql(),
-            self.vector.convert_to_sql()
+            self.date_adding.convert_to_sql()
         ]
     }
 }

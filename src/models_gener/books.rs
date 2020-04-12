@@ -4,14 +4,10 @@ use crate::database::common::{ModelInfo,IntCol,IntCol64,FloatCol64,StringCol,Col
 pub struct Books {
     pub book_id: IntCol,
     pub name: StringCol,
+    pub genre_id: IntCol,
     pub author_id: IntCol,
     pub date_adding: StringCol,
-    pub translate: StringCol,
-    pub rating_parsed: FloatCol64,
-    pub description: StringCol,
-    pub publishing_year: IntCol,
-    pub reading_id: IntCol,
-    pub translator_id: IntCol
+    pub file_id: IntCol
 }
 impl Books {
     pub fn set_book_id(&mut self, book_id : ColEnum<i32>)->&Self{
@@ -32,6 +28,15 @@ impl Books {
         &self.name.value
     }
 
+    pub fn set_genre_id(&mut self, genre_id : ColEnum<i32>)->&Self{
+        self.genre_id = IntCol::new_col(genre_id);
+        self
+    }
+
+    pub fn get_genre_id(&self)->&ColEnum<i32>{
+        &self.genre_id.value
+    }
+
     pub fn set_author_id(&mut self, author_id : ColEnum<i32>)->&Self{
         self.author_id = IntCol::new_col(author_id);
         self
@@ -50,58 +55,13 @@ impl Books {
         &self.date_adding.value
     }
 
-    pub fn set_translate(&mut self, translate : ColEnum<String>)->&Self{
-        self.translate = StringCol::new_col(translate);
+    pub fn set_file_id(&mut self, file_id : ColEnum<i32>)->&Self{
+        self.file_id = IntCol::new_col(file_id);
         self
     }
 
-    pub fn get_translate(&self)->&ColEnum<String>{
-        &self.translate.value
-    }
-
-    pub fn set_rating_parsed(&mut self, rating_parsed : ColEnum<f64>)->&Self{
-        self.rating_parsed = FloatCol64::new_col(rating_parsed);
-        self
-    }
-
-    pub fn get_rating_parsed(&self)->&ColEnum<f64>{
-        &self.rating_parsed.value
-    }
-
-    pub fn set_description(&mut self, description : ColEnum<String>)->&Self{
-        self.description = StringCol::new_col(description);
-        self
-    }
-
-    pub fn get_description(&self)->&ColEnum<String>{
-        &self.description.value
-    }
-
-    pub fn set_publishing_year(&mut self, publishing_year : ColEnum<i32>)->&Self{
-        self.publishing_year = IntCol::new_col(publishing_year);
-        self
-    }
-
-    pub fn get_publishing_year(&self)->&ColEnum<i32>{
-        &self.publishing_year.value
-    }
-
-    pub fn set_reading_id(&mut self, reading_id : ColEnum<i32>)->&Self{
-        self.reading_id = IntCol::new_col(reading_id);
-        self
-    }
-
-    pub fn get_reading_id(&self)->&ColEnum<i32>{
-        &self.reading_id.value
-    }
-
-    pub fn set_translator_id(&mut self, translator_id : ColEnum<i32>)->&Self{
-        self.translator_id = IntCol::new_col(translator_id);
-        self
-    }
-
-    pub fn get_translator_id(&self)->&ColEnum<i32>{
-        &self.translator_id.value
+    pub fn get_file_id(&self)->&ColEnum<i32>{
+        &self.file_id.value
     }
 }
 impl ModelInfo for Books {
@@ -124,21 +84,17 @@ impl ModelInfo for Books {
     }
 
     fn get_columns(&self)-> Vec<&str>{
-        vec!["book_id","name","author_id","date_adding","translate","rating_parsed","description","publishing_year","reading_id","translator_id"]
+        vec!["book_id","name","genre_id","author_id","date_adding","file_id"]
     }
 
     fn get_values(&self) -> Vec<Option<String>>{
         vec![
             self.book_id.convert_to_sql(),
             self.name.convert_to_sql(),
+            self.genre_id.convert_to_sql(),
             self.author_id.convert_to_sql(),
             self.date_adding.convert_to_sql(),
-            self.translate.convert_to_sql(),
-            self.rating_parsed.convert_to_sql(),
-            self.description.convert_to_sql(),
-            self.publishing_year.convert_to_sql(),
-            self.reading_id.convert_to_sql(),
-            self.translator_id.convert_to_sql()
+            self.file_id.convert_to_sql()
         ]
     }
 }
