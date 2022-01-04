@@ -1,6 +1,7 @@
 pub mod books;
 pub mod authors;
 pub mod files;
+pub mod book_vectors_model;
 pub mod book_vectors_phrase_normal_2;
 pub mod book_vectors_phrase_normal_3;
 pub mod book_vectors_phrase_normal_4;

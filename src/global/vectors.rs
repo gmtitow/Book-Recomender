@@ -95,15 +95,11 @@ pub fn get_cos_normal(vec1: &HashMap<String,f32>, vec2: &HashMap<String,f32>)->f
     let mut res: f32 = 0.0;
 
     for (key,val1) in vec1 {
-        
-        // print!("key = {}",&key);
         match vec2.get(key) {
             Some(val2)=>{
-                // println!(", {}",&(val1*val2).to_string());
                 res = res + val1*val2;
             },
             None=>{
-                // println!(", не найдено");
             } 
         }
     }

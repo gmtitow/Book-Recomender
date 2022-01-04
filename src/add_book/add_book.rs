@@ -8,6 +8,7 @@ use crate::models::book_vectors_word_normal::BookVectorsWordNormal;
 use crate::models::books::Books;
 use crate::models::files::Files;
 
+use crate::models::book_vectors_model::BookVectorsModel;
 use crate::models::book_vectors_term_2_normal::BookVectorsTerm2Normal;
 use crate::models::book_vectors_term_3_normal::BookVectorsTerm3Normal;
 use crate::models::book_vectors_term_4_normal::BookVectorsTerm4Normal;
@@ -222,15 +223,12 @@ pub fn get_phrases(text: &str, phrases_len: usize)->Vec<String>{
 
     let mut last_words:Vec<String> = Vec::new();
 
-    let mut count: usize = 0;
-    let mut last_phrase = String::new();
+    let mut last_phrase;
     let punctuation = vec!["!","\"","#","$","%","&","\'","(", ")", "*", "+", ",", "-", ".", "/", 
     ":",";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`","{", "|", "}", "~","—"];
     for word in words {
-            // if word.ends_with(|c : char| c.is_ascii_punctuation()) {
             if punctuation.contains(&word.chars().last().unwrap().to_string().as_str()) {
                 if word.chars().any(|c : char| c.is_alphabetic()) {
-                    // print!("{} ", word.chars().last().unwrap());
                     if last_words.len() == phrases_len {
                         last_words.remove(0);
                     }
@@ -241,7 +239,6 @@ pub fn get_phrases(text: &str, phrases_len: usize)->Vec<String>{
 
                 last_words.clear();
             } else {
-            
                 if last_words.len() < phrases_len {
                     last_words.push(handle_word(&word));
                 } else {

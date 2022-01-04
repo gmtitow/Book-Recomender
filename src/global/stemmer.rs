@@ -14,7 +14,6 @@ pub struct PortarsStemmer<'a> {
     derivational: [Vec<&'a str>; 2],
     adjectival: [Vec<&'a str>; 2],
     suffix: [Vec<&'a str>; 2],
-
     ends: Vec<[Vec<&'a str>; 2]>,
 }
 
